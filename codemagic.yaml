@@ -1,0 +1,48 @@
+workflows:
+  android-release:
+    name: SongSetlist Android Release
+    max_build_duration: 60
+
+    instance_type: linux_x2
+
+    environment:
+      java: 17
+
+    scripts:
+      - name: Check project files
+        script: |
+          echo "Project files:"
+          ls -la
+          echo ""
+          echo "App folder:"
+          ls -la app || true
+
+      - name: Generate Gradle wrapper if missing
+        script: |
+          if [ ! -f "./gradlew" ]; then
+            echo "Gradle wrapper missing."
+            gradle wrapper --gradle-version 8.7 --distribution-type bin
+          fi
+
+          chmod +x ./gradlew
+
+          echo "Gradle wrapper:"
+          ls -la gradlew
+          ls -la gradle/wrapper/
+
+      - name: Build release APK
+        script: |
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Find APK
+        script: |
+          find . -type f -name "*.apk" -print
+
+    artifacts:
+      - app/build/outputs/apk/release/*.apk
+      - "**/build/outputs/apk/release/*.apk"
+
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com
