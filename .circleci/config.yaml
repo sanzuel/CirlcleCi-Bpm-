@@ -1,7 +1,7 @@
 version: 2.1
 
 jobs:
-  generate-wrapper:
+  build:
     docker:
       - image: cimg/android:2025.05
 
@@ -9,23 +9,38 @@ jobs:
       - checkout
 
       - run:
-          name: Generate Gradle Wrapper
+          name: Check Project
           command: |
-            gradle wrapper --gradle-version 8.7
+            echo "Checking Android project..."
+            ls -la
+            find . -maxdepth 2 -type f | sort
+
+      - run:
+          name: Make Gradle Wrapper Executable
+          command: |
+            if [ -f "./gradlew" ]; then
+              chmod +x ./gradlew
+            else
+              echo "ERROR: gradlew was not found."
+              echo "The Android Gradle Wrapper must be included in the repository."
+              exit 1
+            fi
+
+      - run:
+          name: Build Release APK
+          command: |
+            ./gradlew assembleRelease --no-daemon
+
+      - run:
+          name: Find APK
+          command: |
+            find . -type f -name "*.apk" -print
 
       - store_artifacts:
-          path: gradlew
-          destination: gradlew
-
-      - store_artifacts:
-          path: gradlew.bat
-          destination: gradlew.bat
-
-      - store_artifacts:
-          path: gradle/wrapper
-          destination: gradle-wrapper
+          path: app/build/outputs/apk/release
+          destination: release-apk
 
 workflows:
-  generate:
+  build-release-apk:
     jobs:
-      - generate-wrapper 
+      - build
