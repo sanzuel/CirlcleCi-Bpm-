@@ -1,0 +1,15 @@
+CIRCLECI SETUP
+===============
+The CircleCI configuration is already included in:
+.circleci/config.yml
+
+IMPORTANT:
+The .circleci folder starts with a dot, so some Android file managers hide it.
+If uploading through GitHub's website and you cannot see it, create this file manually in GitHub:
+
+Path:
+.circleci/config.yml
+
+Use the contents from the .circleci/config.yml file in this ZIP.
+
+After the repository contains .circleci/config.yml, connect the repository to CircleCI.
