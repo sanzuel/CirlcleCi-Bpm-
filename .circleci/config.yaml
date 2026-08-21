@@ -9,61 +9,49 @@ jobs:
       - checkout
 
       - run:
-          name: Check Android Project
-          command: |
-            echo "Project contents:"
-            ls -la
-            echo ""
-            echo "App contents:"
-            ls -la app || true
-
-      - run:
           name: Generate Gradle Wrapper
           command: |
-            gradle wrapper \
-              --gradle-version 8.7 \
-              --distribution-type bin
-
+            gradle wrapper --gradle-version 8.7 --distribution-type bin
             chmod +x gradlew
 
       - run:
-          name: Build Release APK
+          name: Build Release
           command: |
             ./gradlew assembleRelease --no-daemon
 
       - run:
-          name: Locate APK
+          name: SHOW ALL BUILD OUTPUTS
           command: |
-            echo "Searching entire project for APK files..."
+            echo "===================================="
+            echo "ALL APK FILES"
+            echo "===================================="
             find . -type f -name "*.apk" -print
 
             echo ""
-            echo "Release output directory:"
-            find app/build/outputs -type f -print 2>/dev/null || true
+            echo "===================================="
+            echo "ALL OUTPUT DIRECTORIES"
+            echo "===================================="
+            find . -type d -path "*/build/outputs/*" -print
+
+            echo ""
+            echo "===================================="
+            echo "APP BUILD DIRECTORY"
+            echo "===================================="
+            find app/build -maxdepth 5 -type f -print 2>/dev/null || true
 
       - run:
-          name: Prepare APK Artifact
+          name: Prepare APK
           command: |
-            mkdir -p /tmp/apk-artifact
+            mkdir -p /tmp/apk
 
-            APK=$(find . -type f -name "*.apk" | head -n 1)
+            find . -type f -name "*.apk" -exec cp {} /tmp/apk/ \;
 
-            if [ -z "$APK" ]; then
-              echo "ERROR: No APK was generated."
-              exit 1
-            fi
-
-            echo "Found APK:"
-            echo "$APK"
-
-            cp "$APK" /tmp/apk-artifact/app-release.apk
-
-            echo "Artifact prepared:"
-            ls -lh /tmp/apk-artifact/
+            echo "Files prepared for CircleCI:"
+            ls -lah /tmp/apk
 
       - store_artifacts:
-          path: /tmp/apk-artifact
-          destination: release-apk
+          path: /tmp/apk
+          destination: APK
 
 workflows:
   build-release-apk:
