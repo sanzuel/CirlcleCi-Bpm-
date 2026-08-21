@@ -9,22 +9,38 @@ jobs:
       - checkout
 
       - run:
-          name: Check Project
+          name: Check Android Project
           command: |
-            echo "Checking Android project..."
+            echo "Project files:"
             ls -la
-            find . -maxdepth 2 -type f | sort
+            echo ""
+            echo "App folder:"
+            ls -la app || true
+            echo ""
+            echo "Gradle files:"
+            ls -la build.gradle settings.gradle gradle.properties 2>/dev/null || true
 
       - run:
-          name: Make Gradle Wrapper Executable
+          name: Generate Gradle Wrapper
           command: |
-            if [ -f "./gradlew" ]; then
-              chmod +x ./gradlew
-            else
-              echo "ERROR: gradlew was not found."
-              echo "The Android Gradle Wrapper must be included in the repository."
-              exit 1
-            fi
+            echo "Generating Gradle Wrapper..."
+
+            gradle wrapper \
+              --gradle-version 8.7 \
+              --distribution-type bin
+
+            chmod +x gradlew
+
+            echo ""
+            echo "Gradle Wrapper generated:"
+            ls -la gradlew
+            ls -la gradlew.bat
+            ls -la gradle/wrapper/
+
+      - run:
+          name: Verify Gradle Wrapper
+          command: |
+            ./gradlew --version
 
       - run:
           name: Build Release APK
@@ -32,13 +48,18 @@ jobs:
             ./gradlew assembleRelease --no-daemon
 
       - run:
-          name: Find APK
+          name: Find Release APK
           command: |
-            find . -type f -name "*.apk" -print
+            echo "Searching for APK..."
+            find app/build/outputs -type f -name "*.apk" -print
 
       - store_artifacts:
           path: app/build/outputs/apk/release
           destination: release-apk
+
+      - store_artifacts:
+          path: gradle/wrapper
+          destination: generated-gradle-wrapper
 
 workflows:
   build-release-apk:
