@@ -5,25 +5,25 @@ jobs:
     docker:
       - image: cimg/android:2025.05
 
-    environment:
-      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
-
     steps:
       - checkout
 
       - run:
-          name: Set Java 17
+          name: Install and use Java 17
           command: |
-            export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-            export PATH=$JAVA_HOME/bin:$PATH
+            sudo apt-get update
+            sudo apt-get install -y openjdk-17-jdk
+
+            sudo update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+            sudo update-alternatives --set javac /usr/lib/jvm/java-17-openjdk-amd64/bin/javac
+
             java -version
+            javac -version
             gradle --version
 
       - run:
           name: Build Android APK
           command: |
-            export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-            export PATH=$JAVA_HOME/bin:$PATH
             gradle :app:assembleDebug --no-daemon
 
       - store_artifacts:
